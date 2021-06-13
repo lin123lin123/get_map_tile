@@ -40,6 +40,7 @@ void http::replyFinished(QNetworkReply*)
     file->flush(); file->close();
     file->deleteLater();
     file=NULL;
+    m_bytesCurrentReceived=0;
     if(reply->error() == QNetworkReply::NoError)
     {
         qDebug()<<"finiseh upload";
@@ -70,7 +71,8 @@ disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)),this,SLOT(loadError
   file->deleteLater();
   file=NULL;
   delaymsec(1000);
-  // start_down_load("http://172.19.3.20/resource/led/saloon/map/map.zip");
+   m_bytesCurrentReceived=0;
+   emit transport_error();
 
 }
 
@@ -90,8 +92,5 @@ void http::stop_down_load()
     reply->abort();
     reply->deleteLater();
     reply = NULL;
-     file->flush(); file->close();
-     file->deleteLater();
-     file=NULL;
-     m_bytesCurrentReceived=0;
+
 }

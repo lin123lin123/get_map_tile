@@ -32,7 +32,7 @@ public:
     int lat2tiley(double lat, int z);
     bool get_tile(double lon,double lat,int zoom);
     http  http_pro;
-    thread_loop Thread_loop;
+    thread_loop *Thread_loop;
     bool is_start=false;
 private:
     double lat_max=0;
@@ -46,16 +46,23 @@ private:
    QString pre_url="";
     bool finish_down_png=true;
     QStringList http_list;
-
+    quint16 http_repeat=0;
+    QString cmd_cuurrent;
     void init_connection();
+     void delaymsec(int msec);
+signals:
+    void write_log(QString log);
 
-    void delaymsec(int msec);
+
 private slots:
     void on_pushButton_clicked();
     void finish_down_load_slot();
 
     void on_pushButton_3_clicked();
      void poll_loop_slot();
+     void write_log_slot(QString log);
+     void transport_error_slot();
+
 
 private:
     Ui::MainWindow *ui;

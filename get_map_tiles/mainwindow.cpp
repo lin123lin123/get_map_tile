@@ -8,12 +8,15 @@ MainWindow::MainWindow(QWidget *parent)
 {
     p=this;
     ui->setupUi(this);
+    Thread_loop=new thread_loop(this);
    init_connection();
 
 }
 
 MainWindow::~MainWindow()
 {
+    Thread_loop->quit();
+    Thread_loop->wait();
     delete ui;
 }
 
@@ -57,8 +60,18 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
            pre_url=url;
             qDebug()<<"start down_load;";
             http_list.append(url);
+            QFile F(file_name);
+            if(F.exists())
+            {
+                finish_down_png=true;
+                 qDebug()<<"file exist;"+file_name;
+                return false;
+            }else
+            {
           http_pro.start_down_load(url,file_name);
+          cmd_cuurrent=url;
            return true;
+            }
        }
 
 
@@ -67,15 +80,45 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
 void MainWindow::init_connection()
 {
     connect(&http_pro, SIGNAL(finish_down_load()),this,SLOT(finish_down_load_slot()));
-     connect(&Thread_loop, SIGNAL(poll_loop()),this,SLOT(poll_loop_slot()));
+     connect(&http_pro, SIGNAL(transport_error()),this,SLOT(transport_error_slot()));
+    connect(Thread_loop, SIGNAL(poll_loop()),this,SLOT(poll_loop_slot()));
+    connect(this, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
+}
+
+void MainWindow::write_log_slot(QString log)
+{
+    QFile file("f:/log/erro.log");
+    if(file.open(QIODevice::WriteOnly|QIODevice::Append|QIODevice::Text))
+    {
+        QString log_tmp = QDateTime::currentDateTime().toString("hh:mm:ss")+log+"\n";
+        file.write(log_tmp.toUtf8());
+        file.flush();
+        file.close();
+    }
+}
+
+void MainWindow::transport_error_slot()
+{
+    emit write_log("transpor error"+cmd_cuurrent);
+    http_repeat=0;
+    finish_down_png=true;
 }
 
 void MainWindow::poll_loop_slot()
 {
 
+      if(http_repeat>5000)
+      {
+          emit write_log(cmd_cuurrent);
+          http_repeat=0;
+          finish_down_png=true;
+
+      }
+
               if(!finish_down_png)
                {
                   qDebug()<<"while_return"<<lat_mix<<";"<<lon_mix;
+                  http_repeat++;
                   return;
               }
            if(lat_mix<lat_max)
@@ -88,15 +131,36 @@ void MainWindow::poll_loop_slot()
 
                     }
                    else {
-                       lon_mix=lon_mix+(1.0000/60.0000);
+                       if(zoom==10)
+                       {
+                       lon_mix=lon_mix+(1.0000/6.0000);
+                       }
+                       if(zoom==7)
+                       {
+                       lon_mix=lon_mix+1.0000;
+                       }
                        qDebug()<<"get_tile false ;return"<<lat_mix<<";"<<lon_mix;
                        }
-                    lon_mix=lon_mix+(1.0000/60.0000);
+                    if(zoom==10)
+                    {
+                    lon_mix=lon_mix+(1.0000/6.0000);
+                    }
+                    if(zoom==7)
+                    {
+                    lon_mix=lon_mix+1.0000;
+                    }
                }
                else
                {
                 lon_mix= ui->textEdit_W->toPlainText().toDouble();
-                 lat_mix=lat_mix+(1.0000/60.0000);
+                 if(zoom==10)
+                 {
+                 lat_mix=lat_mix+(1.0000/6.0000);
+                 }
+                 if(zoom==7)
+                 {
+                 lat_mix=lat_mix+1.0000;
+                 }
 
                 }
             }
@@ -125,13 +189,15 @@ qDebug()<<"on_pushButton_clicked";
    lon_mix= ui->textEdit_W->toPlainText().toDouble();
    zoom= ui->textEdit_zoom->toPlainText().toInt();
     is_start=true;
-   Thread_loop.start();
+   Thread_loop->start();
 
 }
 void MainWindow::finish_down_load_slot()
 {
-    finish_down_png=true;
+
      http_pro.stop_down_load();
+     http_repeat=0;
+      finish_down_png=true;
 
 }
 void MainWindow::delaymsec(int msec)
@@ -144,5 +210,6 @@ void MainWindow::delaymsec(int msec)
 void MainWindow::on_pushButton_3_clicked()
 {
     is_start=false;
+    finish_down_png=true;
     http_list.clear();
 }

@@ -29,6 +29,7 @@ private slots:
     void loadProgress(qint64 bytesSent, qint64 bytesTotal);
  signals:
     void  finish_down_load();
+    void  transport_error();
 
 
 };
