@@ -1,4 +1,4 @@
-QT       += core gui network
+QT       += core gui network quickwidgets qml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -12,17 +12,27 @@ SOURCES += \
     http.cpp \
     main.cpp \
     mainwindow.cpp \
+    map_preview.cpp \
+    rec_qmldata.cpp \
     thread_loop.cpp
 
 HEADERS += \
     http.h \
     mainwindow.h \
+    map_preview.h \
+    rec_qmldata.h \
     thread_loop.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    map_preview.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES +=
+
+RESOURCES += \
+    qml.qrc

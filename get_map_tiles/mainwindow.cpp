@@ -9,7 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
     p=this;
     ui->setupUi(this);
     Thread_loop=new thread_loop(this);
-   init_connection();
+     qmlRegisterType<rec_qmldata>("lin.com",1,1,"Lin_mode");
+   init_connection();   
 
 }
 
@@ -212,4 +213,26 @@ void MainWindow::on_pushButton_3_clicked()
     is_start=false;
     finish_down_png=true;
     http_list.clear();
+}
+
+void MainWindow::on_pushButton_4_clicked()
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+     engine.rootContext()->setContextProperty("mainwidget",this);
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    engine.load(url);
+    this->close();
+    if (engine.rootObjects().isEmpty())
+         {  //qDebug()<<"load error";
+           QDateTime tm=QDateTime::currentDateTime();
+         qDebug()<<"qml load erro";
+           return;
+       }
+}
+
+void MainWindow::on_pushButton_5_clicked()
+{
+    emit close_map();
 }

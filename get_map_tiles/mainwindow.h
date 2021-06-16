@@ -6,6 +6,11 @@
 #include<QStringList>
 #include"thread_loop.h"
 #include"http.h"
+#include<map_preview.h>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include"rec_qmldata.h"
 //#define M_PI 3.14159265358979323846
 typedef struct
 {
@@ -50,8 +55,11 @@ private:
     QString cmd_cuurrent;
     void init_connection();
      void delaymsec(int msec);
+    map_preview * Map=NULL;
+    QQmlApplicationEngine engine;
 signals:
     void write_log(QString log);
+    void close_map();
 
 
 private slots:
@@ -63,6 +71,10 @@ private slots:
      void write_log_slot(QString log);
      void transport_error_slot();
 
+
+     void on_pushButton_4_clicked();
+
+     void on_pushButton_5_clicked();
 
 private:
     Ui::MainWindow *ui;

@@ -1,0 +1,12 @@
+release/http.o
+release/main.o
+release/mainwindow.o
+release/map_preview.o
+release/rec_qmldata.o
+release/thread_loop.o
+release/qrc_qml.o
+release/moc_http.o
+release/moc_mainwindow.o
+release/moc_map_preview.o
+release/moc_rec_qmldata.o
+release/moc_thread_loop.o
