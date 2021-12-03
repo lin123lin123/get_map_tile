@@ -45,6 +45,7 @@ public:
     QPushButton *pushButton;
     QPushButton *pushButton_2;
     QPushButton *pushButton_4;
+    QPushButton *pushButton_5;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -108,7 +109,10 @@ public:
 
         pushButton_4 = new QPushButton(centralwidget);
         pushButton_4->setObjectName(QStringLiteral("pushButton_4"));
-        pushButton_4->setGeometry(QRect(250, 490, 182, 23));
+        pushButton_4->setGeometry(QRect(70, 500, 182, 23));
+        pushButton_5 = new QPushButton(centralwidget);
+        pushButton_5->setObjectName(QStringLiteral("pushButton_5"));
+        pushButton_5->setGeometry(QRect(330, 500, 182, 23));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QStringLiteral("menubar"));
@@ -135,6 +139,7 @@ public:
         pushButton->setText(QApplication::translate("MainWindow", "start", Q_NULLPTR));
         pushButton_2->setText(QApplication::translate("MainWindow", "clear", Q_NULLPTR));
         pushButton_4->setText(QApplication::translate("MainWindow", "preview", Q_NULLPTR));
+        pushButton_5->setText(QApplication::translate("MainWindow", "close_preview", Q_NULLPTR));
     } // retranslateUi
 
 };

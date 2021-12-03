@@ -57,6 +57,7 @@ private:
      void delaymsec(int msec);
     map_preview * Map=NULL;
     QQmlApplicationEngine engine;
+    rec_qmldata  qml_data;
 signals:
     void write_log(QString log);
     void close_map();
@@ -75,6 +76,7 @@ private slots:
      void on_pushButton_4_clicked();
 
      void on_pushButton_5_clicked();
+     void close_map_slot();
 
 private:
     Ui::MainWindow *ui;

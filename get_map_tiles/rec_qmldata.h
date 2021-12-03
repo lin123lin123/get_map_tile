@@ -14,14 +14,19 @@ class rec_qmldata:public QObject
      Q_OBJECT
 public:
     rec_qmldata();
-    Q_PROPERTY(int operation READ getoperation WRITE setoperation NOTIFY operationChanged)
+    Q_PROPERTY(int operation READ getoperation WRITE setoperation NOTIFY operationChanged
+      )
      int operation;
     int getoperation();
+    void init_connect();
     Q_INVOKABLE  void setoperation(int adr);
 signals:
-    Q_INVOKABLE void operationChanged();
+   // Q_INVOKABLE void operationChanged();
+     void operationChanged();
+    void  close_map();
 public slots:
-    Q_INVOKABLE void  rec_operation_slot(int msg);
+  //  Q_INVOKABLE void  rec_operation_slot(int msg);
+    void  rec_operation_slot(int msg);
 };
 
 #endif // REC_QMLDATA_H

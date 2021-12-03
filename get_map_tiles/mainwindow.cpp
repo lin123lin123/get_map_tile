@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include<qmath.h>
+#include <stdio.h>
 MainWindow *p=NULL;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -8,9 +9,11 @@ MainWindow::MainWindow(QWidget *parent)
 {
     p=this;
     ui->setupUi(this);
+     printf("lin--------------");
     Thread_loop=new thread_loop(this);
      qmlRegisterType<rec_qmldata>("lin.com",1,1,"Lin_mode");
-   init_connection();   
+   init_connection();
+
 
 }
 
@@ -84,6 +87,7 @@ void MainWindow::init_connection()
      connect(&http_pro, SIGNAL(transport_error()),this,SLOT(transport_error_slot()));
     connect(Thread_loop, SIGNAL(poll_loop()),this,SLOT(poll_loop_slot()));
     connect(this, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
+      connect(&qml_data, SIGNAL(close_map()),this,SLOT(close_map_slot()));
 }
 
 void MainWindow::write_log_slot(QString log)
@@ -150,6 +154,10 @@ void MainWindow::poll_loop_slot()
                     {
                     lon_mix=lon_mix+1.0000;
                     }
+                    if(zoom==6)
+                    {
+                    lon_mix=lon_mix+1.0000;
+                    }
                }
                else
                {
@@ -159,6 +167,10 @@ void MainWindow::poll_loop_slot()
                  lat_mix=lat_mix+(1.0000/6.0000);
                  }
                  if(zoom==7)
+                 {
+                 lat_mix=lat_mix+1.0000;
+                 }
+                 if(zoom==6)
                  {
                  lat_mix=lat_mix+1.0000;
                  }
@@ -221,6 +233,7 @@ void MainWindow::on_pushButton_4_clicked()
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
      engine.rootContext()->setContextProperty("mainwidget",this);
+      engine.rootContext()->setContextProperty("qml_data",&qml_data);
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     engine.load(url);
     this->close();
@@ -235,4 +248,10 @@ void MainWindow::on_pushButton_4_clicked()
 void MainWindow::on_pushButton_5_clicked()
 {
     emit close_map();
+}
+
+void MainWindow::close_map_slot()
+{
+    qDebug()<<"close_map_slot";
+    this->show();
 }
