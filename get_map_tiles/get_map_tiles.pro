@@ -10,6 +10,7 @@ CONFIG += c++11
 
 SOURCES += \
     http.cpp \
+    log_thread.cpp \
     main.cpp \
     mainwindow.cpp \
     map_preview.cpp \
@@ -18,6 +19,7 @@ SOURCES += \
 
 HEADERS += \
     http.h \
+    log_thread.h \
     mainwindow.h \
     map_preview.h \
     rec_qmldata.h \

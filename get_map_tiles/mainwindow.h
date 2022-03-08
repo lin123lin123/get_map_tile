@@ -11,7 +11,10 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include"rec_qmldata.h"
+#include"log_thread.h"
+#include<QList>
 //#define M_PI 3.14159265358979323846
+#define andriod
 typedef struct
 {
     int x;
@@ -38,7 +41,10 @@ public:
     bool get_tile(double lon,double lat,int zoom);
     http  http_pro;
     thread_loop *Thread_loop;
-    bool is_start=false;
+    bool is_start=false;   
+    log_thread Log_thread;
+
+
 private:
     double lat_max=0;
     double lat_mix= 0;
@@ -48,19 +54,27 @@ private:
     int y_pre=0;
     int z_pre=0;
     int zoom=0;
+    QList<int> zoom_list;
    QString pre_url="";
-    bool finish_down_png=true;
+
     QStringList http_list;
-    quint16 http_repeat=0;
+
     QString cmd_cuurrent;
     void init_connection();
      void delaymsec(int msec);
     map_preview * Map=NULL;
     QQmlApplicationEngine engine;
     rec_qmldata  qml_data;
+    quint16 http_repeat=0;
+     bool finish_down_png=true;
+      QString file_name="";
+     QString qt_file_name="";
+      bool qt_select=true;
+      bool android_select=true;
 signals:
     void write_log(QString log);
     void close_map();
+    void send_log(QString);
 
 
 private slots:
@@ -77,6 +91,8 @@ private slots:
 
      void on_pushButton_5_clicked();
      void close_map_slot();
+
+     void on_pushButton_2_clicked();
 
 private:
     Ui::MainWindow *ui;

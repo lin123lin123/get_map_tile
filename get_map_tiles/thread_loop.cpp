@@ -18,6 +18,7 @@ void thread_loop::run()
 
         emit poll_loop();
          delaymsec(10);
+    //     qDebug()<<"thread_loop::run()--------------";
     }
 
 }
