@@ -13,16 +13,16 @@ class http: public QObject
      Q_OBJECT
 public:
     http();
-   void start_down_load(QString url,QString path,QString qt_path);
+   bool start_down_load(QString url,QString path,QString qt_path);
    void delaymsec(int msec);
     void stop_down_load();
  private:
     QFile *file=NULL;
     QFile *qt_file=NULL;
-    QNetworkReply *reply;
+    QNetworkReply *reply=NULL;
     quint64 m_bytesCurrentReceived=0;
     quint64 progess=0;
-    QNetworkAccessManager *accessManager;
+    QNetworkAccessManager *accessManager;   
 private slots:
     void replyFinished(QNetworkReply*);
     void loadError(QNetworkReply::NetworkError);

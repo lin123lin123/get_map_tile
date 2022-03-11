@@ -43,7 +43,8 @@ public:
     thread_loop *Thread_loop;
     bool is_start=false;   
     log_thread Log_thread;
-
+    quint16 http_repeat=0;
+    bool finish_down_png=true;
 
 private:
     double lat_max=0;
@@ -64,13 +65,16 @@ private:
      void delaymsec(int msec);
     map_preview * Map=NULL;
     QQmlApplicationEngine engine;
-    rec_qmldata  qml_data;
-    quint16 http_repeat=0;
-     bool finish_down_png=true;
+    rec_qmldata  qml_data;   
       QString file_name="";
      QString qt_file_name="";
       bool qt_select=true;
       bool android_select=true;
+      bool read_pause_info();
+      void write_pause_info();
+      bool read_pause_info_config();
+      void write_pause_info_config();
+
 signals:
     void write_log(QString log);
     void close_map();
