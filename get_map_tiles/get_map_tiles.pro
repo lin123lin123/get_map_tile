@@ -8,8 +8,11 @@ CONFIG += c++11
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-SOURCES += \
-    http.cpp \
+SOURCES += \  
+    http_a.cpp \
+    http_b.cpp \
+    http_c.cpp \
+    http_d.cpp \
     log_thread.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -17,8 +20,11 @@ SOURCES += \
     rec_qmldata.cpp \
     thread_loop.cpp
 
-HEADERS += \
-    http.h \
+HEADERS += \  
+    http_a.h \
+    http_b.h \
+    http_c.h \
+    http_d.h \
     log_thread.h \
     mainwindow.h \
     map_preview.h \

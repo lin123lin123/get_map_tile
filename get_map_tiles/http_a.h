@@ -1,5 +1,5 @@
-#ifndef HTTP_H
-#define HTTP_H
+#ifndef HTTP_H_A
+#define HTTP_H_A
 
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
@@ -8,11 +8,12 @@
 #include <QFile>
 #include<QObject>
 #include <QCoreApplication>
-class http: public QObject
+#include <QThread>
+class http_a: public QThread
 {
      Q_OBJECT
 public:
-    http();
+    http_a();
    bool start_down_load(QString url,QString path,QString qt_path);
    void delaymsec(int msec);
     void stop_down_load();
@@ -22,7 +23,12 @@ public:
     QNetworkReply *reply=NULL;
     quint64 m_bytesCurrentReceived=0;
     quint64 progess=0;
-    QNetworkAccessManager *accessManager;   
+    QNetworkAccessManager *accessManager;
+    QByteArray buffer;
+    QStringList qt_name;
+    QStringList android_name;
+    QStringList  url_list;
+    virtual void  run();
 private slots:
     void replyFinished(QNetworkReply*);
     void loadError(QNetworkReply::NetworkError);
@@ -36,4 +42,4 @@ private slots:
 
 };
 
-#endif // HTTP_H
+#endif // HTTP_H_A

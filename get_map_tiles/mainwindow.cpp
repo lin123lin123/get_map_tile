@@ -5,16 +5,23 @@
 #include<QDir>
 #include<QMessageBox>
 MainWindow *p=NULL;
+extern rec_qmldata * recda;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+     qDebug()<<QThread::currentThreadId();
     p=this;
     ui->setupUi(this);
     Thread_loop=new thread_loop(this);
     qmlRegisterType<rec_qmldata>("lin.com",1,1,"Lin_mode");
     Log_thread.start();
-    init_connection();   
+    http_pro_a.start();
+     http_pro_b.start();
+      http_pro_c.start();
+       http_pro_d.start();
+    init_connection();
+
 }
 
 MainWindow::~MainWindow()
@@ -24,15 +31,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-bool MainWindow::get_tile(double lon, double lat, int zoom)
+bool MainWindow::get_tile(double lon, double lat, int zoom,int thread_index)
 {
     int x;
     x=long2tilex(lon,zoom);
-    qDebug()<<x;
+    //qDebug()<<x;
     //    // emit write_log("get_tile---x="+QString::number(x));
     int y;
     y= lat2tiley(lat,zoom);
-    qDebug()<<y;
+   // qDebug()<<y;
     //   // emit write_log("get_tile---y="+QString::number(y));
 
     QString str_zoom=QString::number(zoom);
@@ -50,11 +57,15 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
         QString t1="f:/map/"+str_zoom;
         if(folder->exists(t1))
         {
+            delete folder;
+            folder=NULL;
             QDir *folder1 = new QDir();
             QString t2="f:/map/"+str_zoom+"/"+str_x;
             //   // emit write_log("get_tile---t1 exist="+t1);
             if(folder1->exists(t2))
             {
+                delete folder1;
+                folder1=NULL;
                 file_name="f:/map/"+str_zoom+"/"+str_x+"/"+str_y+".png";
                 qDebug()<<"1"<<file_name;
                 //         // emit write_log("get_tile---t2 exist="+file_name);
@@ -66,7 +77,9 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
             }
             else
             {
-                folder->mkdir(t2);
+                folder1->mkdir(t2);
+                delete folder1;
+                folder1=NULL;
                 file_name="f:/map/"+str_zoom+"/"+str_x+"/"+str_y+".png";
                 qDebug()<<"2"<<file_name;
                 //       // emit write_log("get_tile---t2 not exist="+file_name);
@@ -79,11 +92,15 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
         }
         else {
             folder->mkdir(t1);
+            delete folder;
+            folder=NULL;
             QDir *folder1 = new QDir();
             QString t2="f:/map/"+str_zoom+"/"+str_x;
             //     // emit write_log("get_tile---t1 not exist="+t1);
             if(folder1->exists(t2))
             {
+                delete folder1;
+                folder1=NULL;
                 file_name="f:/map/"+str_zoom+"/"+str_x+"/"+str_y+".png";
                 qDebug()<<"3"<<file_name;
                 //           // emit write_log("get_tile---t2 exist="+file_name);
@@ -95,7 +112,9 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
             }
             else
             {
-                folder->mkdir(t2);
+                folder1->mkdir(t2);
+                delete folder1;
+                folder1=NULL;
                 file_name="f:/map/"+str_zoom+"/"+str_x+"/"+str_y+".png";
                 qDebug()<<"4"<<file_name;
                 //              // emit write_log("get_tile---t2 not exist="+file_name);
@@ -116,16 +135,14 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
         qDebug()<<"qt_file_name="<<qt_file_name;
     }
     if(pre_url==url)
-    {
-        finish_down_png=true;
+    {       
         qDebug()<<"posion is same return;";
         // emit write_log("get_tile---posion is same return;file name="+file_name);
         return false;
 
     }
     else if(http_list.contains(url))
-    {
-        finish_down_png=true;
+    {      
         qDebug()<<"http cmd hava this http;";
         // emit write_log("http cmd hava this http,file name="+file_name);
         return false;
@@ -133,18 +150,66 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
     }
     else{
         pre_url=url;
-        qDebug()<<"start down_load;";
+        qDebug()<<QString::number(thread_index)+"--start down_load;";
         // emit write_log("start down_load;file_name="+file_name);
-        http_list.append(url);
-       if(http_pro.start_down_load(url,file_name,qt_file_name))
-       {
-           cmd_cuurrent=url;
-          return true;
+
+        if(http_list.size()>0xff)
+        {
+            http_list.clear();
         }else
-       {
-             cmd_cuurrent=url;
-            return false;
-       }
+        {
+             http_list.append(url);
+        }
+        if(thread_index==1)
+        {
+           if(http_pro_a.start_down_load(url,file_name,qt_file_name))
+           {
+               qDebug()<<"lin-----------------1";
+               cmd_cuurrent=url;
+              return true;
+            }else
+           {
+                  qDebug()<<"lin-----------------2";
+                 cmd_cuurrent=url;
+                return false;
+           }
+        }
+        else if(thread_index==2)
+        {
+           if(http_pro_b.start_down_load(url,file_name,qt_file_name))
+           {
+               cmd_cuurrent=url;
+              return true;
+            }else
+           {
+                 cmd_cuurrent=url;
+                return false;
+           }
+        }
+       else  if(thread_index==3)
+        {
+           if(http_pro_c.start_down_load(url,file_name,qt_file_name))
+           {
+               cmd_cuurrent=url;
+              return true;
+            }else
+           {
+                 cmd_cuurrent=url;
+                return false;
+           }
+        }
+        else
+        {
+           if(http_pro_d.start_down_load(url,file_name,qt_file_name))
+           {
+               cmd_cuurrent=url;
+              return true;
+            }else
+           {
+                 cmd_cuurrent=url;
+                return false;
+           }
+        }
     }
 
 
@@ -152,13 +217,24 @@ bool MainWindow::get_tile(double lon, double lat, int zoom)
 
 void MainWindow::init_connection()
 {
-    connect(&http_pro, SIGNAL(finish_down_load()),this,SLOT(finish_down_load_slot()));
-    connect(&http_pro, SIGNAL(transport_error()),this,SLOT(transport_error_slot()));
+    connect(&http_pro_a, SIGNAL(finish_down_load()),this,SLOT(finish_down_load_slot_a()));
+    connect(&http_pro_a, SIGNAL(transport_error()),this,SLOT(transport_error_slot_a()));
+    connect(&http_pro_b, SIGNAL(finish_down_load()),this,SLOT(finish_down_load_slot_b()));
+    connect(&http_pro_b, SIGNAL(transport_error()),this,SLOT(transport_error_slot_b()));
+    connect(&http_pro_c, SIGNAL(finish_down_load()),this,SLOT(finish_down_load_slot_c()));
+    connect(&http_pro_c, SIGNAL(transport_error()),this,SLOT(transport_error_slot_c()));
+    connect(&http_pro_d, SIGNAL(finish_down_load()),this,SLOT(finish_down_load_slot_d()));
+    connect(&http_pro_d, SIGNAL(transport_error()),this,SLOT(transport_error_slot_d()));
     connect(Thread_loop, SIGNAL(poll_loop()),this,SLOT(poll_loop_slot()));
     connect(this, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
     connect(this, SIGNAL(send_log(QString)),&Log_thread,SLOT(log_thread_slot(QString)));
-    connect(&http_pro, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
-    connect(&qml_data, SIGNAL(close_map()),this,SLOT(close_map_slot()));
+    connect(&http_pro_a, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
+    connect(&http_pro_b, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
+    connect(&http_pro_c, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
+    connect(&http_pro_d, SIGNAL(write_log(QString)),this,SLOT(write_log_slot(QString)));
+    connect(this, SIGNAL(show_map(int)),&map_show,SLOT(show_map_slot(int)));
+    connect(this, SIGNAL(send_gps(double,double,int)),&map_show,SLOT(send_gps_slot(double,double,int)));
+
 }
 
 void MainWindow::write_log_slot(QString log)
@@ -169,41 +245,97 @@ void MainWindow::write_log_slot(QString log)
     //  qDebug()<<"write_log_slot"<<log_tmp;
 }
 
-void MainWindow::transport_error_slot()
+void MainWindow::transport_error_slot_a()
 {
     emit write_log("transpor error"+cmd_cuurrent+"file_name=="+file_name);
     //   http_pro.stop_down_load();
-    http_repeat=0;
-    finish_down_png=true;
+    http_repeat_a=0;
+    finish_down_png_a=true;
+}
+void MainWindow::transport_error_slot_b()
+{
+    emit write_log("transpor error"+cmd_cuurrent+"file_name=="+file_name);
+    //   http_pro.stop_down_load();
+    http_repeat_b=0;
+    finish_down_png_b=true;
+}
+void MainWindow::transport_error_slot_c()
+{
+    emit write_log("transpor error"+cmd_cuurrent+"file_name=="+file_name);
+    //   http_pro.stop_down_load();
+    http_repeat_c=0;
+    finish_down_png_c=true;
+}
+void MainWindow::transport_error_slot_d()
+{
+    emit write_log("transpor error"+cmd_cuurrent+"file_name=="+file_name);
+    //   http_pro.stop_down_load();
+    http_repeat_d=0;
+    finish_down_png_d=true;
 }
 
 void MainWindow::poll_loop_slot()
 { 
-    if(http_repeat>300)
+    if(http_repeat_a>300)
     {
         // emit write_log(cmd_cuurrent);
-        http_pro.stop_down_load();
-        http_repeat=0;
-        finish_down_png=true;
-
-
+        http_pro_a.stop_down_load();
+        http_repeat_a=0;
+        finish_down_png_a=true;
     }
-
-    if(!finish_down_png)
+    if(http_repeat_b>300)
     {
-       // qDebug()<<"while_return"<<lat_mix<<";"<<lon_mix;
-        //     // emit write_log("while_return"+QString::number(lat_mix,'f',2)+";"+QString::number(lon_mix,'f',2));
-        http_repeat++;
-        return;
+        // emit write_log(cmd_cuurrent);
+        http_pro_b.stop_down_load();
+        http_repeat_b=0;
+        finish_down_png_b=true;
     }
+    if(http_repeat_c>300)
+    {
+        // emit write_log(cmd_cuurrent);
+        http_pro_c.stop_down_load();
+        http_repeat_c=0;
+        finish_down_png_c=true;
+    }
+    if(http_repeat_d>300)
+    {
+        // emit write_log(cmd_cuurrent);
+        http_pro_d.stop_down_load();
+        http_repeat_d=0;
+        finish_down_png_d=true;
+    }
+
+    if(((!finish_down_png_a))&&((!finish_down_png_b))&&((!finish_down_png_c))&&((!finish_down_png_d)))
+    {
+      return;
+    }
+    if(!finish_down_png_a)
+    {
+        http_repeat_a++;
+    }
+    if(!finish_down_png_b)
+    {
+        http_repeat_b++;
+    }
+    if(!finish_down_png_c)
+    {
+        http_repeat_c++;
+    }
+    if(!finish_down_png_d)
+    {
+        http_repeat_d++;
+    }
+    send_gps(lon_mix,lat_mix,zoom);
+if(finish_down_png_a)
+{
     if(lat_mix<lat_max)
     {
 
         if(lon_mix<lon_max)
         {
-            if( get_tile(lon_mix,lat_mix,zoom))
+            if( get_tile(lon_mix,lat_mix,zoom,1))
             {
-                finish_down_png=false;
+                finish_down_png_a=false;
             }
             else {
                 qDebug()<<"get_tile false ;return"<<lat_mix<<";"<<lon_mix;
@@ -253,11 +385,15 @@ void MainWindow::poll_loop_slot()
                 lon_mix=lon_mix+1.0000;
             }
             ui->log_process->setValue(lon_mix);
+            ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
         }
         else
         {
             lon_mix= ui->textEdit_W->toPlainText().toDouble();
             ui->log_process->setValue(lon_mix);
+              ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
             if(zoom==15)
             {
                 lat_mix=lat_mix+(1.0000/60.0000);
@@ -302,17 +438,20 @@ void MainWindow::poll_loop_slot()
                 lat_mix=lat_mix+1.0000;
             }
             ui->lat_process->setValue(lat_mix);
+               ui->lat_value->setPlainText(QString::number(lat_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
             write_pause_info();
         }
     }else
     {
         ui->lat_process->setValue(lat_max);
+        // send_gps(lon_mix,lat_mix,zoom)
         if(zoom_list.size()>0)
         {    emit write_log("zoom="+QString::number(zoom)+"finished download");
             zoom=zoom_list.takeFirst();
             ui->current_zoom->setPlainText(QString::number(zoom));
             Log_thread.file.setFileName("f:/log/"+QString::number(zoom)+"erro.log");
-            finish_down_png=true;
+            finish_down_png_a=true;
             lat_max= ui->textEdit_N->toPlainText().toDouble();
             lat_mix= ui->textEdit_S->toPlainText().toDouble();
             lon_max= ui->textEdit_E->toPlainText().toDouble();
@@ -329,6 +468,435 @@ void MainWindow::poll_loop_slot()
             f_del1.remove("f:/log/pause1");
         }
     }
+  }
+if(finish_down_png_b)
+{
+    if(lat_mix<lat_max)
+    {
+
+        if(lon_mix<lon_max)
+        {
+            if( get_tile(lon_mix,lat_mix,zoom,2))
+            {
+                finish_down_png_b=false;
+            }
+            else {
+                qDebug()<<"get_tile false ;return"<<lat_mix<<";"<<lon_mix;
+                // emit write_log("get_tile false ;return"+QString::number(lat_mix,'f',2)+";"+QString::number(lon_mix,'f',2));
+            }
+            if(zoom==15)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==14)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==13)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==12)
+            {
+                lon_mix=lon_mix+(1.0000/30.0000);
+            }
+            else if(zoom==11)
+            {
+                lon_mix=lon_mix+(1.0000/12.0000);
+            }
+            else  if(zoom==10)
+            {
+                lon_mix=lon_mix+(1.0000/6.0000);
+            }
+            else  if(zoom==9)
+            {
+                lon_mix=lon_mix+(1.0000/3.0000);
+            }
+            else  if(zoom==8)
+            {
+                lon_mix=lon_mix+(1.0000/2.0000);
+            }
+            else if(zoom==7)
+            {
+                lon_mix=lon_mix+1.0000;
+            }
+            else if(zoom==6)
+            {
+                lon_mix=lon_mix+1.0000;
+            }else
+            {
+                lon_mix=lon_mix+1.0000;
+            }
+            ui->log_process->setValue(lon_mix);
+              ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+        }
+        else
+        {
+            lon_mix= ui->textEdit_W->toPlainText().toDouble();
+            ui->log_process->setValue(lon_mix);
+              ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+            if(zoom==15)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==14)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==13)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==12)
+            {
+                lat_mix=lat_mix+(1.0000/30.0000);
+            }
+            else if(zoom==11)
+            {
+                lat_mix=lat_mix+(1.0000/12.0000);
+            }
+            else if(zoom==10)
+            {
+                lat_mix=lat_mix+(1.0000/6.0000);
+            }
+            else if(zoom==9)
+            {
+                 lat_mix=lat_mix+(1.0000/3.0000);
+            }
+            else if(zoom==8)
+            {
+                lat_mix=lat_mix+(1.0000/2.0000);
+            }
+            else if(zoom==7)
+            {
+                lat_mix=lat_mix+1.0000;
+            }
+            else if(zoom==6)
+            {
+                lat_mix=lat_mix+1.0000;
+            }else
+            {
+                lat_mix=lat_mix+1.0000;
+            }
+            ui->lat_process->setValue(lat_mix);
+               ui->lat_value->setPlainText(QString::number(lat_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+            write_pause_info();
+        }
+    }else
+    {
+        ui->lat_process->setValue(lat_max);
+        // send_gps(lon_mix,lat_mix,zoom)
+        if(zoom_list.size()>0)
+        {    emit write_log("zoom="+QString::number(zoom)+"finished download");
+            zoom=zoom_list.takeFirst();
+            ui->current_zoom->setPlainText(QString::number(zoom));
+            Log_thread.file.setFileName("f:/log/"+QString::number(zoom)+"erro.log");
+            finish_down_png_b=true;
+            lat_max= ui->textEdit_N->toPlainText().toDouble();
+            lat_mix= ui->textEdit_S->toPlainText().toDouble();
+            lon_max= ui->textEdit_E->toPlainText().toDouble();
+            lon_mix= ui->textEdit_W->toPlainText().toDouble();
+            http_list.clear();
+            write_pause_info();
+        }else
+        {
+            emit write_log("zoom="+QString::number(zoom)+"finished download");
+            is_start=false;
+            QFile f_del;
+            f_del.remove("f:/log/pause");
+            QFile f_del1;
+            f_del1.remove("f:/log/pause1");
+        }
+    }
+  }
+if(finish_down_png_c)
+{
+    if(lat_mix<lat_max)
+    {
+
+        if(lon_mix<lon_max)
+        {
+            if( get_tile(lon_mix,lat_mix,zoom,3))
+            {
+                finish_down_png_c=false;
+            }
+            else {
+                qDebug()<<"get_tile false ;return"<<lat_mix<<";"<<lon_mix;
+                // emit write_log("get_tile false ;return"+QString::number(lat_mix,'f',2)+";"+QString::number(lon_mix,'f',2));
+            }
+            if(zoom==15)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==14)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==13)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==12)
+            {
+                lon_mix=lon_mix+(1.0000/30.0000);
+            }
+            else if(zoom==11)
+            {
+                lon_mix=lon_mix+(1.0000/12.0000);
+            }
+            else  if(zoom==10)
+            {
+                lon_mix=lon_mix+(1.0000/6.0000);
+            }
+            else  if(zoom==9)
+            {
+                lon_mix=lon_mix+(1.0000/3.0000);
+            }
+            else  if(zoom==8)
+            {
+                lon_mix=lon_mix+(1.0000/2.0000);
+            }
+            else if(zoom==7)
+            {
+                lon_mix=lon_mix+1.0000;
+            }
+            else if(zoom==6)
+            {
+                lon_mix=lon_mix+1.0000;
+            }else
+            {
+                lon_mix=lon_mix+1.0000;
+            }
+            ui->log_process->setValue(lon_mix);
+              ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+        }
+        else
+        {
+            lon_mix= ui->textEdit_W->toPlainText().toDouble();
+            ui->log_process->setValue(lon_mix);
+              ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+            if(zoom==15)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==14)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==13)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==12)
+            {
+                lat_mix=lat_mix+(1.0000/30.0000);
+            }
+            else if(zoom==11)
+            {
+                lat_mix=lat_mix+(1.0000/12.0000);
+            }
+            else if(zoom==10)
+            {
+                lat_mix=lat_mix+(1.0000/6.0000);
+            }
+            else if(zoom==9)
+            {
+                 lat_mix=lat_mix+(1.0000/3.0000);
+            }
+            else if(zoom==8)
+            {
+                lat_mix=lat_mix+(1.0000/2.0000);
+            }
+            else if(zoom==7)
+            {
+                lat_mix=lat_mix+1.0000;
+            }
+            else if(zoom==6)
+            {
+                lat_mix=lat_mix+1.0000;
+            }else
+            {
+                lat_mix=lat_mix+1.0000;
+            }
+            ui->lat_process->setValue(lat_mix);
+               ui->lat_value->setPlainText(QString::number(lat_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+            write_pause_info();
+        }
+    }else
+    {
+        ui->lat_process->setValue(lat_max);
+        // send_gps(lon_mix,lat_mix,zoom)
+        if(zoom_list.size()>0)
+        {    emit write_log("zoom="+QString::number(zoom)+"finished download");
+            zoom=zoom_list.takeFirst();
+            ui->current_zoom->setPlainText(QString::number(zoom));
+            Log_thread.file.setFileName("f:/log/"+QString::number(zoom)+"erro.log");
+            finish_down_png_c=true;
+            lat_max= ui->textEdit_N->toPlainText().toDouble();
+            lat_mix= ui->textEdit_S->toPlainText().toDouble();
+            lon_max= ui->textEdit_E->toPlainText().toDouble();
+            lon_mix= ui->textEdit_W->toPlainText().toDouble();
+            http_list.clear();
+            write_pause_info();
+        }else
+        {
+            emit write_log("zoom="+QString::number(zoom)+"finished download");
+            is_start=false;
+            QFile f_del;
+            f_del.remove("f:/log/pause");
+            QFile f_del1;
+            f_del1.remove("f:/log/pause1");
+        }
+    }
+  }
+if(finish_down_png_d)
+{
+    if(lat_mix<lat_max)
+    {
+        if(lon_mix<lon_max)
+        {
+            if( get_tile(lon_mix,lat_mix,zoom,4))
+            {
+                finish_down_png_d=false;
+            }
+            else {
+                qDebug()<<"get_tile false ;return"<<lat_mix<<";"<<lon_mix;
+                // emit write_log("get_tile false ;return"+QString::number(lat_mix,'f',2)+";"+QString::number(lon_mix,'f',2));
+            }
+            if(zoom==15)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==14)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==13)
+            {
+                lon_mix=lon_mix+(1.0000/60.0000);
+            }
+            else if(zoom==12)
+            {
+                lon_mix=lon_mix+(1.0000/30.0000);
+            }
+            else if(zoom==11)
+            {
+                lon_mix=lon_mix+(1.0000/12.0000);
+            }
+            else  if(zoom==10)
+            {
+                lon_mix=lon_mix+(1.0000/6.0000);
+            }
+            else  if(zoom==9)
+            {
+                lon_mix=lon_mix+(1.0000/3.0000);
+            }
+            else  if(zoom==8)
+            {
+                lon_mix=lon_mix+(1.0000/2.0000);
+            }
+            else if(zoom==7)
+            {
+                lon_mix=lon_mix+1.0000;
+            }
+            else if(zoom==6)
+            {
+                lon_mix=lon_mix+1.0000;
+            }else
+            {
+                lon_mix=lon_mix+1.0000;
+            }
+            ui->log_process->setValue(lon_mix);
+              ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+        }
+        else
+        {
+            lon_mix= ui->textEdit_W->toPlainText().toDouble();
+            ui->log_process->setValue(lon_mix);
+              ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+            if(zoom==15)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==14)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==13)
+            {
+                lat_mix=lat_mix+(1.0000/60.0000);
+            }
+            else if(zoom==12)
+            {
+                lat_mix=lat_mix+(1.0000/30.0000);
+            }
+            else if(zoom==11)
+            {
+                lat_mix=lat_mix+(1.0000/12.0000);
+            }
+            else if(zoom==10)
+            {
+                lat_mix=lat_mix+(1.0000/6.0000);
+            }
+            else if(zoom==9)
+            {
+                 lat_mix=lat_mix+(1.0000/3.0000);
+            }
+            else if(zoom==8)
+            {
+                lat_mix=lat_mix+(1.0000/2.0000);
+            }
+            else if(zoom==7)
+            {
+                lat_mix=lat_mix+1.0000;
+            }
+            else if(zoom==6)
+            {
+                lat_mix=lat_mix+1.0000;
+            }else
+            {
+                lat_mix=lat_mix+1.0000;
+            }
+            ui->lat_process->setValue(lat_mix);
+               ui->lat_value->setPlainText(QString::number(lat_mix,'f',4));
+            // send_gps(lon_mix,lat_mix,zoom)
+            write_pause_info();
+        }
+    }else
+    {
+        ui->lat_process->setValue(lat_max);
+        // send_gps(lon_mix,lat_mix,zoom)
+        if(zoom_list.size()>0)
+        {    emit write_log("zoom="+QString::number(zoom)+"finished download");
+            zoom=zoom_list.takeFirst();
+            ui->current_zoom->setPlainText(QString::number(zoom));
+            Log_thread.file.setFileName("f:/log/"+QString::number(zoom)+"erro.log");
+            finish_down_png_d=true;
+            lat_max= ui->textEdit_N->toPlainText().toDouble();
+            lat_mix= ui->textEdit_S->toPlainText().toDouble();
+            lon_max= ui->textEdit_E->toPlainText().toDouble();
+            lon_mix= ui->textEdit_W->toPlainText().toDouble();
+            http_list.clear();
+            write_pause_info();
+        }else
+        {
+            emit write_log("zoom="+QString::number(zoom)+"finished download");
+            is_start=false;
+            QFile f_del;
+            f_del.remove("f:/log/pause");
+            QFile f_del1;
+            f_del1.remove("f:/log/pause1");
+        }
+    }
+  }
 }
 
 int MainWindow::long2tilex(double lon, int z)
@@ -372,8 +940,11 @@ void MainWindow::on_pushButton_clicked()
         }
         ui->lat_process->setRange(ui->textEdit_S->toPlainText().toDouble(),ui->textEdit_N->toPlainText().toDouble());
         ui->lat_process->setValue(lat_mix);
+           ui->lat_value->setPlainText(QString::number(lat_mix,'f',4));
         ui->log_process->setRange(ui->textEdit_W->toPlainText().toDouble(),ui->textEdit_E->toPlainText().toDouble());
         ui->log_process->setValue(lon_mix);
+          ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+        // send_gps(lon_mix,lat_mix,zoom)
     }
     else{
         lat_max= ui->textEdit_N->toPlainText().toDouble();
@@ -383,8 +954,11 @@ void MainWindow::on_pushButton_clicked()
         write_pause_info_config();
         ui->lat_process->setRange(lat_mix,lat_max);
         ui->lat_process->setValue(lat_mix);
+           ui->lat_value->setPlainText(QString::number(lat_mix,'f',4));
         ui->log_process->setRange(lon_mix,lon_max);
         ui->log_process->setValue(lon_mix);
+          ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+        // send_gps(lon_mix,lat_mix,zoom)
         QString tmp_zoom= ui->textEdit_zoom->toPlainText();
         int  index=tmp_zoom.indexOf(":");
         qDebug()<<"tmp_zoom"<<tmp_zoom;
@@ -437,12 +1011,38 @@ void MainWindow::on_pushButton_clicked()
         Thread_loop->start();
     }
 }
-void MainWindow::finish_down_load_slot()
+void MainWindow::finish_down_load_slot_a()
 {
 
-    http_pro.stop_down_load();
-    http_repeat=0;
-    finish_down_png=true;
+    http_repeat_a=0;
+    finish_down_png_a=true;
+    qDebug()<<"finish_down_load_slot";
+    // emit write_log("finish_down_load:"+file_name);
+
+}
+void MainWindow::finish_down_load_slot_b()
+{
+
+    http_repeat_b=0;
+    finish_down_png_b=true;
+    qDebug()<<"finish_down_load_slot";
+    // emit write_log("finish_down_load:"+file_name);
+
+}
+void MainWindow::finish_down_load_slot_c()
+{
+
+    http_repeat_c=0;
+    finish_down_png_c=true;
+    qDebug()<<"finish_down_load_slot";
+    // emit write_log("finish_down_load:"+file_name);
+
+}
+void MainWindow::finish_down_load_slot_d()
+{
+
+    http_repeat_d=0;
+    finish_down_png_d=true;
     qDebug()<<"finish_down_load_slot";
     // emit write_log("finish_down_load:"+file_name);
 
@@ -611,25 +1211,13 @@ void MainWindow::on_pushButton_3_clicked()
 
 void MainWindow::on_pushButton_4_clicked()
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-#endif
-    engine.rootContext()->setContextProperty("mainwidget",this);
-    engine.rootContext()->setContextProperty("qml_data",&qml_data);
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
-    engine.load(url);
-    this->close();
-    if (engine.rootObjects().isEmpty())
-    {  //qDebug()<<"load error";
-        QDateTime tm=QDateTime::currentDateTime();
-        qDebug()<<"qml load erro";
-        return;
-    }
+    map_show.map_load();
+    emit show_map(1);
 }
 
 void MainWindow::on_pushButton_5_clicked()
 {
-    emit close_map();
+    emit show_map(0);
 }
 
 void MainWindow::close_map_slot()
@@ -650,7 +1238,10 @@ void MainWindow::on_pushButton_2_clicked()
     file_name="";
     qt_file_name="";
     ui->lat_process->setValue(lat_mix);
+       ui->lat_value->setPlainText(QString::number(lat_mix,'f',4));
     ui->log_process->setValue(lon_mix);
+      ui->lon_value->setPlainText(QString::number(lon_mix,'f',4));
+    // send_gps(lon_mix,lat_mix,zoom)
     QFile f_del;
     f_del.remove("f:/log/pause");
     QFile f_del1;

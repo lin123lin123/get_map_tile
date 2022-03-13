@@ -5,90 +5,46 @@ import QtLocation 5.6
 import QtGraphicalEffects 1.0
 import lin.com 1.1
 Window {
-    width: 1920
-    height: 1080
-    visible: true
-    title: qsTr("Hello World")
-     id:main_map
-    Plugin{
-        id:mapPlugin
-        name:"osm"
-        PluginParameter { name: "osm.mapping.offline.directory"; value: "f:/map"}
+    x:0
+    y:0
+    width:1000
+    height:300
+   id:mainwindow
 
+ signal send_gps_to_map(int lat,int lon,int zoom)
+   visible: true
+   Map_pro
+   {
 
-    }
-
-   Map{
-
-       id:map
+       id:map_load
        x:0
-        y:0
-        width:1920
-        height:1080
-        z:0
-        visible: true
-        //  anchors.fill:parent
-       plugin:mapPlugin
-       center:QtPositioning.coordinate(41.22, 60.21)
-       zoomLevel: 10
-       PositionSource {
-             id: positionSource
-
-         }
-       MapCircle{
-           id:red_hot
-           center:QtPositioning.coordinate(41.22, 60.21)
-           radius:500
-           color:"red"
-           visible: true
-       }
-
+       y:0
+       width:1000
+       height:300
+       visible: false;
 
    }
-     Lin_mode{
-        id:data_to_control_widget
-
-     }
-     Rectangle
-     {
-         x:0
-          y:0
-          width:40
-          height:20
-          z:1
-          id:rec
-          Text {
-              x:0
-              y:0
-              width:40
-              height:20
-              visible: true
-              id: name
-              color: "red"
-              text: qsTr("Return")
-              signal return_opration(int msg)
-          }
-          MouseArea
-          {
-              x:0
-              y:0
-              width:40
-              height:20
-              onClicked:
-              {
-               name.return_opration.connect(data_to_control_widget.rec_operation_slot)
-                emit: name.return_opration(1);
-                   main_map.close();
-              }
-          }
-
-     }
-
      Connections{
          target: mainwidget
-         onClose_map:
+         onShow_map:
          {
-             main_map.close();
+               console.log("onShow_map");
+             if(control)
+             {
+                 map_load.visible=true;
+                console.log("loding map");
+
+             }else
+             {
+                  map_load.visible=false;
+                 console.log("remove  map");
+             }
+         }
+         onSend_gps:
+         {
+             map_load.lat_1=lat;
+             map_load.lon_1=lon;
+             map_load.zoom_1=zoom;
          }
      }
 
